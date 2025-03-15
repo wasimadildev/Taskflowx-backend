@@ -25,7 +25,7 @@ export const loginOrCreateAccountService = async (data: {
 
   try {
     session.startTransaction();
-    console.log("Started Session...");
+    console .log("Started Session...");
 
     let user = await UserModel.findOne({ email }).session(session);
 
