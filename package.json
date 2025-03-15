@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": "14.x"
-  },
+  "node": "18.x"
+},
  "scripts": {
   "seed": "ts-node src/seeders/role.seeder.ts",
   "dev": "ts-node-dev --files src/index.ts",
