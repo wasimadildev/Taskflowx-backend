@@ -25,11 +25,13 @@ export const loginOrCreateAccountService = async (data: {
 
   try {
     session.startTransaction();
-    console .log("Started Session...");
+    console.log("Started Session...");
 
     let user = await UserModel.findOne({ email }).session(session);
+    let isNewUser = false;
 
     if (!user) {
+      isNewUser = true;
       // Create a new user if it doesn't exist
       user = new UserModel({
         email,
@@ -44,8 +46,31 @@ export const loginOrCreateAccountService = async (data: {
         providerId: providerId,
       });
       await account.save({ session });
+    } else {
+      // Update existing user with latest info
+      user.name = displayName;
+      user.profilePicture = picture || user.profilePicture;
+      await user.save({ session });
+      
+      // Check if account exists for this provider, create if not
+      const existingAccount = await AccountModel.findOne({
+        userId: user._id,
+        provider: provider
+      }).session(session);
+      
+      if (!existingAccount) {
+        const account = new AccountModel({
+          userId: user._id,
+          provider: provider,
+          providerId: providerId,
+        });
+        await account.save({ session });
+      }
+    }
 
-      // 3. Create a new workspace for the new user
+    // Check if user needs a workspace or set currentWorkspace
+    if (isNewUser || !user.currentWorkspace) {
+      // Create a workspace if user doesn't have one
       const workspace = new WorkspaceModel({
         name: `My Workspace`,
         description: `Workspace created for ${user.name}`,
@@ -71,7 +96,12 @@ export const loginOrCreateAccountService = async (data: {
 
       user.currentWorkspace = workspace._id as mongoose.Types.ObjectId;
       await user.save({ session });
+      
+      console.log("Created new workspace for user:", workspace._id);
+    } else {
+      console.log("User already has workspace:", user.currentWorkspace);
     }
+    
     await session.commitTransaction();
     session.endSession();
     console.log("End Session...");
@@ -80,6 +110,7 @@ export const loginOrCreateAccountService = async (data: {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.error("Error in loginOrCreateAccountService:", error);
     throw error;
   } finally {
     session.endSession();
