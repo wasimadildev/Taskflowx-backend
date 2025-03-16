@@ -32,4 +32,14 @@ authRoutes.get(
   googleLoginCallback
 );
 
+// Add a debug endpoint to verify login and session status
+authRoutes.get("/login-status", (req, res) => {
+  res.json({
+    isLoggedIn: !!req.user,
+    user: req.user || null,
+    session: !!req.session,
+    cookies: req.headers.cookie || null
+  });
+});
+
 export default authRoutes;

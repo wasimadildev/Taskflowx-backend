@@ -35,6 +35,7 @@ app.use(
     secure: config.NODE_ENV === "production",
     httpOnly: true,
     sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+    domain: config.NODE_ENV === "production" ? undefined : undefined
   })
 );
 
@@ -43,7 +44,7 @@ app.use(passport.session());
 
 app.use(
   cors({
-    origin: config.FRONTEND_ORIGIN,
+    origin: [config.FRONTEND_ORIGIN, 'https://taskflowx-frontend-6cut.vercel.app'],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
