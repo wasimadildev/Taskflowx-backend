@@ -46,19 +46,32 @@ app.use(
     origin: config.FRONTEND_ORIGIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    optionsSuccessStatus: 200,
+    preflightContinue: false
   })
 );
 
 app.get(
   `/`,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    throw new BadRequestException(
-      "This is a bad request",
-      ErrorCodeEnum.AUTH_INVALID_TOKEN
-    );
     return res.status(HTTPSTATUS.OK).json({
-      message: "Hello Subscribe to the channel & share",
+      message: "API is running successfully",
+      environment: config.NODE_ENV
+    });
+  })
+);
+
+// Debug endpoint to check session status
+app.get(
+  `${BASE_PATH}/debug/session`,
+  asyncHandler(async (req: Request, res: Response) => {
+    return res.status(HTTPSTATUS.OK).json({
+      hasSession: !!req.session,
+      hasUser: !!req.user,
+      user: req.user || null,
+      cookies: req.headers.cookie || null,
+      sessionData: req.session || null,
     });
   })
 );
